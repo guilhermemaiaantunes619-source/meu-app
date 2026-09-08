@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>NOX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1c1c1c;
+      --card: #181818;
+      --fg: #f5f5f5;
+      --muted: #b3b3b3;
+      --subtle: #737373;
+      --primary: #e50914;
+      --play: #f5f5f5;
+      --play-fg: #0a0a0a;
+      --border: rgba(255,255,255,.1);
+      --font: "Outfit", ui-sans-serif, system-ui, sans-serif;
+      --display: "Bebas Neue", "Arial Narrow", Impact, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      min-height: 100dvh;
+      color-scheme: dark;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, [role="button"] { cursor: pointer; font-family: inherit; }
+    button:disabled { cursor: default; }
+    img { max-width: 100%; display: block; }
+    input, textarea, select {
+      font-family: inherit;
+      color: var(--fg);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      width: 100%;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus { border-color: rgba(255,255,255,.28); }
+    textarea { min-height: 92px; resize: vertical; }
+    .nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 40;
+      display: flex; align-items: center; gap: 18px;
+      height: 64px; padding: 0 16px;
+      background: linear-gradient(to bottom, rgba(10,10,10,.85), transparent);
+      transition: background .2s;
+    }
+    .nav.solid { background: rgba(10,10,10,.95); box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
+    @media (min-width: 768px) { .nav { height: 68px; padding: 0 48px; gap: 28px; } }
+    .logo {
+      font-family: var(--display);
+      font-size: 2rem; letter-spacing: .04em; color: var(--primary);
+      text-decoration: none; line-height: 1;
+    }
+    .nav-links { display: none; gap: 20px; }
+    @media (min-width: 768px) { .nav-links { display: flex; } }
+    .nav-links a, .nav-links button.linkish {
+      background: none; border: 0; color: var(--muted); font-size: 14px; text-decoration: none;
+    }
+    .nav-links a.active, .nav-links button.linkish.active, .nav-links a:hover, .nav-links button.linkish:hover { color: var(--fg); }
+    .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      width: 40px; height: 40px; border: 0; border-radius: 8px;
+      background: transparent; color: var(--fg); display: grid; place-items: center;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,.08); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 0; border-radius: 6px; font-weight: 600; font-size: 14px;
+      padding: 10px 16px; color: #fff; background: var(--primary);
+    }
+    .btn.play { background: var(--play); color: var(--play-fg); }
+    .btn.ghost { background: rgba(109,109,110,.7); color: #fff; }
+    .btn.outline { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35); padding: 9px 14px; }
+    .btn.lg { padding: 12px 22px; font-size: 16px; }
+    .hero {
+      position: relative; isolation: isolate;
+      min-height: 78vw; overflow: hidden;
+    }
+    @media (min-width: 768px) { .hero { min-height: 38rem; } }
+    @media (min-width: 1024px) { .hero { min-height: 42rem; } }
+    .hero-art, .hero-img { position: absolute; inset: 0; }
+    .hero-img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-shade {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to right, #0a0a0a, rgba(10,10,10,.55) 45%, rgba(10,10,10,.1)),
+        linear-gradient(to top, #0a0a0a, rgba(10,10,10,.28) 40%, rgba(10,10,10,.18));
+    }
+    .hero-copy {
+      position: relative; z-index: 2;
+      min-height: inherit; display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 112px 16px 64px; max-width: 48rem;
+    }
+    @media (min-width: 768px) { .hero-copy { padding: 112px 48px 96px; } }
+    .kicker { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .hero h1 { font-family: var(--display); font-size: clamp(2.8rem, 8vw, 6rem); line-height: .9; letter-spacing: .02em; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 14px; }
+    .badge { border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 12px; }
+    .hero p { margin-top: 16px; max-width: 36rem; color: rgba(245,245,245,.9); line-height: 1.55; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .rows { position: relative; z-index: 3; margin-top: -40px; padding-bottom: 80px; display: flex; flex-direction: column; gap: 8px; }
+    @media (min-width: 768px) { .rows { margin-top: -64px; } }
+    .row { padding: 8px 0 12px; }
+    .row h2 { font-size: 18px; font-weight: 600; padding: 0 16px 10px; }
+    @media (min-width: 768px) { .row h2 { padding: 0 48px 12px; font-size: 20px; } }
+    .scroller {
+      display: flex; gap: 8px; overflow-x: auto; padding: 4px 16px 12px;
+      scrollbar-width: none;
+    }
+    .scroller::-webkit-scrollbar { display: none; }
+    @media (min-width: 768px) { .scroller { padding-left: 48px; padding-right: 48px; gap: 10px; } }
+    .card {
+      flex: 0 0 42vw; max-width: 180px;
+      aspect-ratio: 2/3; border-radius: 4px; overflow: hidden;
+      background: var(--surface-2); position: relative;
+      transform: scale(1); transition: transform .18s ease, box-shadow .18s ease;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.08);
+    }
+    @media (min-width: 640px) { .card { flex-basis: 160px; } }
+    @media (min-width: 1024px) { .card { flex-basis: 180px; } }
+    .card:hover { transform: scale(1.06); z-index: 2; box-shadow: 0 12px 28px rgba(0,0,0,.55); }
+    .ranked { align-items: flex-end; }
+    .rank {
+      font-family: var(--display); font-size: 96px; line-height: .78;
+      color: var(--bg); -webkit-text-stroke: 3px var(--subtle);
+      letter-spacing: -.08em; user-select: none; margin-right: -8px;
+    }
+    .poster-art { position: absolute; inset: 0; overflow: hidden; background: var(--p-a); }
+    .poster-art::before { content: ""; position: absolute; inset: 0; background: var(--p-wash); }
+    .poster-orb { position: absolute; border-radius: 999px; filter: blur(2px); background: radial-gradient(circle, var(--p-c), transparent 68%); }
+    .poster-bar { position: absolute; background: color-mix(in oklab, var(--p-b) 70%, transparent); }
+    .poster-p0 { --p-a:#14080c; --p-b:#8a1424; --p-c:#e8c9a8; --p-wash:linear-gradient(180deg,transparent 20%,#14080c 92%); }
+    .poster-p1 { --p-a:#071018; --p-b:#1c4e72; --p-c:#cfe3f2; --p-wash:linear-gradient(180deg,transparent 18%,#071018 94%); }
+    .poster-p2 { --p-a:#0c0c0e; --p-b:#6a6a72; --p-c:#f0ead8; --p-wash:linear-gradient(180deg,transparent 22%,#0c0c0e 90%); }
+    .poster-p3 { --p-a:#120a06; --p-b:#9a4a18; --p-c:#f2d2a0; --p-wash:linear-gradient(180deg,transparent 16%,#120a06 92%); }
+    .poster-p4 { --p-a:#08140f; --p-b:#1f6a4a; --p-c:#d5f0e0; --p-wash:linear-gradient(180deg,transparent 20%,#08140f 92%); }
+    .poster-p5 { --p-a:#100814; --p-b:#5a2068; --p-c:#e8d4f0; --p-wash:linear-gradient(180deg,transparent 18%,#100814 94%); }
+    .poster-p6 { --p-a:#0a1018; --p-b:#203848; --p-c:#d8c8a8; --p-wash:linear-gradient(180deg,transparent 24%,#0a1018 90%); }
+    .poster-p7 { --p-a:#160808; --p-b:#a02020; --p-c:#f0d8c0; --p-wash:linear-gradient(180deg,transparent 16%,#160808 92%); }
+    .poster-title { position: absolute; inset: auto 0 0 0; z-index: 2; padding: 12px; }
+    .poster-title strong { display: block; font-family: var(--display); font-size: 1.45rem; line-height: .95; letter-spacing: .03em; }
+    .poster-title span { display: block; margin-top: 4px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+    .empty {
+      min-height: 100dvh; display: grid; place-items: center; text-align: center; padding: 24px;
+    }
+    .empty .logo { font-size: 3.2rem; }
+    .overlay {
+      position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.72);
+      display: none; align-items: flex-start; justify-content: center; padding: 24px 12px; overflow: auto;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      width: min(720px, 100%); background: var(--surface); border-radius: 10px; overflow: hidden;
+      margin: auto; box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    }
+    .modal-hero { position: relative; height: 240px; }
+    .modal-body { padding: 20px 22px 28px; }
+    .close {
+      position: absolute; top: 12px; right: 12px; z-index: 3;
+      width: 36px; height: 36px; border-radius: 999px; border: 0; background: rgba(0,0,0,.6); color: #fff;
+    }
+    .form-grid { display: grid; gap: 12px; }
+    @media (min-width: 640px) { .form-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border: 1px solid var(--border); background: transparent; color: var(--muted);
+      border-radius: 999px; padding: 6px 10px; font-size: 12px;
+    }
+    .chip.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+    .search-list { display: grid; gap: 8px; max-height: 50vh; overflow: auto; }
+    .search-item {
+      display: flex; gap: 12px; align-items: center; width: 100%; text-align: left;
+      background: transparent; border: 0; color: inherit; padding: 8px; border-radius: 8px;
+    }
+    .search-item:hover { background: rgba(255,255,255,.06); }
+    .thumb { width: 44px; height: 66px; border-radius: 4px; overflow: hidden; position: relative; flex: none; }
+    .theater { position: fixed; inset: 0; z-index: 60; background: #000; display: none; }
+    .theater.open { display: block; }
+    .theater-bar { position: absolute; inset: 0 0 auto 0; display: flex; align-items: center; gap: 12px; padding: 16px 18px; }
+    .screen { position: absolute; inset: 72px 16px 80px; background: #111; border-radius: 8px; display: grid; place-items: center; overflow: hidden; }
+    .playhead { height: 4px; width: 22%; background: var(--primary); border-radius: 99px; animation: playhead 8s forwards; }
+    @keyframes playhead { from { width: 0 } to { width: 22% } }
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      background: #222; color: #fff; padding: 10px 14px; border-radius: 8px; display: none; z-index: 80;
+    }
+    .page { display: none; }
+    .page.on { display: block; }
+    .list-grid { padding: 96px 16px 48px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    @media (min-width: 768px) { .list-grid { padding: 112px 48px 64px; gap: 16px; } }
+    .list-grid .card { flex: none; max-width: none; width: 100%; }
+  </style>
+</head>
+<body>
+  <header class="nav" id="nav">
+    <a class="logo" href="#/" data-go="home">NOX</a>
+    <nav class="nav-links">
+      <a href="#/" class="active" data-go="home">Início</a>
+      <a href="#/lista" data-go="lista">Minha Lista</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="searchBtn" aria-label="Buscar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+      </button>
+      <button class="btn" id="addBtn">+ Adicionar</button>
+    </div>
+  </header>
+
+  <div id="home" class="page on"></div>
+  <div id="lista" class="page">
+    <div class="list-grid" id="listaGrid"></div>
+  </div>
+
+  <div class="overlay" id="detail">
+    <div class="modal" id="detailModal"></div>
+  </div>
+  <div class="overlay" id="add">
+    <form class="modal" id="addForm" style="padding:22px">
+      <h2 id="addTitle" style="font-size:22px;margin-bottom:6px">Adicionar filme</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Título e pelo menos um gênero. Sem pôster, a capa é gerada automaticamente.</p>
+      <div class="form-grid">
+        <div><label>Título</label><input name="title" required placeholder="Nome do filme" /></div>
+        <div class="form-2">
+          <div><label>Ano</label><input name="year" type="number" min="1888" max="2100" value="2026" /></div>
+          <div><label>Duração (min)</label><input name="durationMin" type="number" min="1" value="110" /></div>
+        </div>
+        <div class="form-2">
+          <div><label>Nota (0–10)</label><input name="rating" type="number" min="0" max="10" step="0.1" value="8" /></div>
+          <div>
+            <label>Classificação</label>
+            <select name="classification">
+              <option>L</option><option>10</option><option>12</option><option selected>14</option><option>16</option><option>18</option>
+            </select>
+          </div>
+        </div>
+        <div><label>Direção</label><input name="director" placeholder="Nome da direção" /></div>
+        <div><label>Sinopse</label><textarea name="synopsis" placeholder="Do que se trata?"></textarea></div>
+        <div>
+          <label>Gêneros</label>
+          <div class="chips" id="genreChips"></div>
+        </div>
+        <div><label>URL do pôster (opcional)</label><input name="posterUrl" placeholder="https://..." /></div>
+        <label style="display:flex;align-items:center;gap:8px;color:var(--fg)">
+          <input type="checkbox" name="featured" style="width:auto" /> Destacar no topo
+        </label>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button type="button" class="btn outline" id="cancelAdd">Cancelar</button>
+          <button class="btn" type="submit">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="overlay" id="search">
+    <div class="modal" style="padding:22px">
+      <h2 style="margin-bottom:12px">Buscar</h2>
+      <input id="searchInput" placeholder="Título, direção ou gênero" />
+      <div class="search-list" id="searchList" style="margin-top:12px"></div>
+    </div>
+  </div>
+  <div class="theater" id="theater">
+    <div class="theater-bar">
+      <button class="btn outline" id="closeTheater">Fechar</button>
+      <strong id="theaterTitle"></strong>
+    </div>
+    <div class="screen">
+      <div style="width:min(640px,90%);">
+        <div style="height:4px;background:#333;border-radius:99px;overflow:hidden"><div class="playhead" id="playhead"></div></div>
+        <p style="margin-top:18px;text-align:center;color:var(--muted)">Prévia cinematográfica</p>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const GENRES = ["Ação","Aventura","Drama","Ficção","Suspense","Romance","Crime","Fantasia","Noir","Terror"];
+    const SEED = [
+      {id:"eclipse-de-aco",title:"Eclipse de Aço",year:2024,synopsis:"Quando o anel que envolve o Sol começa a falhar, uma engenheira é enviada para o único lugar de onde ainda se vê a Terra: o lado de sombra da estrutura.",genres:["Ficção","Ação"],rating:8.4,durationMin:132,director:"Lena Voss",classification:"16",featured:true,inMyList:false,createdAt:1720000000000},
+      {id:"mare-vermelha",title:"Maré Vermelha",year:2023,synopsis:"Uma bióloga marinha volta à vila onde cresceu no instante em que a maré começa a pintar o oceano da cor da ferrugem — e a trazer o que o fundo guardava.",genres:["Suspense","Drama"],rating:7.9,durationMin:124,director:"Rafael Moura",classification:"16",featured:true,inMyList:true,createdAt:1710000000000},
+      {id:"ultima-estacao",title:"A Última Estação",year:2022,synopsis:"O chefe de uma estação alpina esquecida espera, noite após noite, um comboio que o horário ainda anuncia — e que ninguém mais acredita que exista.",genres:["Drama"],rating:8.1,durationMin:118,director:"Inês Calderón",classification:"12",featured:false,inMyList:false,createdAt:1700000000000},
+      {id:"arquiteto-silencio",title:"O Arquiteto do Silêncio",year:2021,synopsis:"Um arquiteto surdo é contratado para desenhar uma sala de concertos que jamais poderá emitir um som. O edifício, no entanto, começa a ouvir por ele.",genres:["Drama","Suspense"],rating:8.6,durationMin:141,director:"Henrik Solberg",classification:"14",featured:false,inMyList:true,createdAt:1690000000000},
+      {id:"noite-em-lisboa",title:"Noite em Lisboa",year:2019,synopsis:"Uma tradutora é contratada por uma única noite para interpretar uma conversa que não deveria existir. Ao amanhecer, a cidade já não fala a mesma língua.",genres:["Noir","Crime"],rating:8.0,durationMin:109,director:"Paula Nogueira",classification:"16",featured:false,inMyList:false,createdAt:1680000000000},
+      {id:"horizonte-zero",title:"Horizonte Zero",year:2025,synopsis:"Duas irmãs atravessam o deserto para entregar uma carta que o pai nunca enviou. O horizonte, a cada amanhecer, parece mais perto — e mais falso.",genres:["Aventura","Drama"],rating:7.7,durationMin:128,director:"Kenji Watanabe",classification:"12",featured:false,inMyList:false,createdAt:1670000000000},
+      {id:"casa-das-mares",title:"A Casa das Marés",year:2020,synopsis:"A herança é uma casa que só existe na maré baixa. Quem aceita as chaves aceita também o que a água devolve, noite após noite.",genres:["Terror","Drama"],rating:7.4,durationMin:97,director:"Marina Costa",classification:"16",featured:false,inMyList:false,createdAt:1660000000000},
+      {id:"vento-norte",title:"Vento Norte",year:2018,synopsis:"Um peão persegue um rebanho roubado rumo a um inverno que se recusa a acabar. O vento, aos poucos, começa a devolver os nomes dos que partem.",genres:["Drama","Aventura"],rating:8.2,durationMin:115,director:"Tomás Ribeiro",classification:"12",featured:false,inMyList:false,createdAt:1650000000000},
+      {id:"cidade-de-cinzas",title:"Cidade de Cinzas",year:2024,synopsis:"Uma botânica forense lê um assassinato no pólen de uma metrópole queimada. Cada planta aponta para um andar — e para alguém que ainda mora lá.",genres:["Crime","Suspense"],rating:8.3,durationMin:126,director:"Elena Volkova",classification:"18",featured:false,inMyList:false,createdAt:1640000000000},
+      {id:"relogio-de-areia",title:"O Relógio de Areia",year:2023,synopsis:"Uma criança encontra uma ampulheta que rouba minutos dos vivos para devolvê-los aos mortos. O preço aparece no relógio da cozinha, um segundo por vez.",genres:["Fantasia","Drama"],rating:7.8,durationMin:134,director:"João Pacheco",classification:"10",featured:false,inMyList:false,createdAt:1630000000000},
+      {id:"fogo-frio",title:"Fogo Frio",year:2022,synopsis:"Uma cientista de núcleos de gelo descobre um sinal enterrado num glaciar. Quem o enviou ainda espera resposta — debaixo de três quilômetros de azul.",genres:["Ação","Suspense"],rating:7.5,durationMin:119,director:"Amira Hassan",classification:"16",featured:false,inMyList:false,createdAt:1620000000000},
+      {id:"ponte-invisivel",title:"A Ponte Invisível",year:2021,synopsis:"Dois capitães de balsa, em margens opostas, se apaixonam apenas pelo rádio. A névoa entre eles cresce na mesma medida em que as vozes se aproximam.",genres:["Romance","Drama"],rating:7.6,durationMin:108,director:"Diego Salinas",classification:"12",featured:false,inMyList:true,createdAt:1610000000000},
+      {id:"sombras-de-recife",title:"Sombras de Recife",year:2020,synopsis:"Uma detetive investiga um desaparecimento que só acontece nas noites de carnaval. Quando as luzes se apagam, a cidade devolve sempre a mesma sombra.",genres:["Crime","Noir"],rating:7.9,durationMin:111,director:"Clara Mendes",classification:"16",featured:false,inMyList:false,createdAt:1600000000000},
+      {id:"ultimo-voo",title:"O Último Voo",year:2025,synopsis:"O último passageiro de um aeroporto encerrado percebe que o terminal está se esvaziando de tempo. Cada portão que se apaga apaga também uma memória.",genres:["Suspense"],rating:7.3,durationMin:102,director:"Nils Åkerman",classification:"14",featured:false,inMyList:false,createdAt:1590000000000},
+      {id:"atlas-interior",title:"Atlas Interior",year:2024,synopsis:"Uma cartógrafa é contratada para mapear um país que existe apenas dentro de um coma. Cada fronteira que ela desenha muda o pulso do paciente.",genres:["Ficção","Fantasia"],rating:8.5,durationMin:145,director:"Sofia Berg",classification:"12",featured:false,inMyList:false,createdAt:1580000000000},
+      {id:"neon-na-chuva",title:"Neon na Chuva",year:2019,synopsis:"Um fabricante de letreiros é forçado a construir uma letra que mata quem a lê. A cidade inteira espera o acendimento — e a chuva não para.",genres:["Noir","Crime"],rating:8.1,durationMin:106,director:"André Falcão",classification:"18",featured:false,inMyList:false,createdAt:1570000000000}
+    ];
+
+    const KEY = "nox-catalog-html";
+    let movies = load();
+    let selectedGenres = [];
+    let editingId = null;
+    let page = "home";
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        }
+      } catch {}
+      return structuredClone(SEED);
+    }
+    function save() { localStorage.setItem(KEY, JSON.stringify(movies)); }
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg; el.style.display = "block";
+      clearTimeout(toast._t); toast._t = setTimeout(() => el.style.display = "none", 2200);
+    }
+    function hash(s) { let h = 0; for (const c of s) h = ((h << 5) - h) + c.charCodeAt(0) | 0; return Math.abs(h); }
+    function dur(min) { const h = Math.floor(min/60), m = min%60; return h ? `${h}h ${m}min` : `${m}min`; }
+    function posterHTML(movie) {
+      const h = hash(movie.title);
+      const pal = h % 8, rec = h % 4;
+      const orbs = [
+        '<span class="poster-orb" style="top:-20%;left:-10%;width:90%;height:90%"></span><span class="poster-bar" style="top:18%;right:0;height:1px;width:75%"></span>',
+        '<span class="poster-orb" style="right:-30%;bottom:20%;width:80%;height:80%"></span><span class="poster-bar" style="top:33%;left:0;height:38%;width:20%"></span>',
+        '<span class="poster-orb" style="top:8%;left:15%;width:70%;height:70%"></span><span class="poster-bar" style="bottom:28%;left:12%;height:1px;width:75%"></span>',
+        '<span class="poster-bar" style="left:18%;top:0;height:100%;width:1px"></span><span class="poster-orb" style="bottom:-20%;right:-10%;width:70%;height:70%"></span>'
+      ][rec];
+      const img = movie.posterUrl ? `<img src="${esc(movie.posterUrl)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">` : "";
+      return `<div class="poster-art poster-p${pal}">${orbs}${img}<div class="poster-title"><strong>${esc(movie.title)}</strong><span>${movie.year}</span></div></div>`;
+    }
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, "&" + "amp;")
+        .replace(/</g, "&" + "lt;")
+        .replace(/>/g, "&" + "gt;")
+        .replace(/"/g, "&" + "quot;")
+        .replace(/'/g, "&#39;");
+    }
+    function card(movie, rank) {
+      return `<button class="card" data-open="${movie.id}" aria-label="${esc(movie.title)}">${rank ? `<span class="rank">${rank}</span>` : ""}${posterHTML(movie)}</button>`;
+    }
+    function row(title, list, ranked) {
+      if (!list.length) return "";
+      const items = list.map((m,i) => ranked ? `<div style="display:flex;align-items:flex-end">${card(m,i+1)}</div>` : card(m)).join("");
+      return `<section class="row"><h2>${esc(title)}</h2><div class="scroller${ranked ? " ranked" : ""}">${items}</div></section>`;
+    }
+    function renderHome() {
+      const root = document.getElementById("home");
+      if (!movies.length) {
+        root.innerHTML = `<div class="empty"><div><div class="logo">NOX</div><h1 style="margin:16px 0 8px">Sua estante está vazia</h1><p style="color:var(--muted)">Adicione o primeiro filme da coleção.</p><button class="btn" style="margin-top:20px" id="emptyAdd">Adicionar filme</button></div></div>`;
+        return;
+      }
+      const hero = movies.find(m => m.featured) || [...movies].sort((a,b)=>b.rating-a.rating)[0];
+      const myList = movies.filter(m => m.inMyList);
+      const recent = [...movies].sort((a,b)=>b.createdAt-a.createdAt).slice(0,12);
+      const top = [...movies].sort((a,b)=>b.rating-a.rating).slice(0,10);
+      const trending = movies.filter(m => m.id !== hero.id).slice(0,10);
+      root.innerHTML = `
+        <section class="hero">
+          <div class="hero-art poster-art poster-p${hash(hero.title)%8}">${posterHTML(hero)}</div>
+          <div class="hero-shade"></div>
+          <div class="hero-copy">
+            <p class="kicker">Em destaque</p>
+            <h1>${esc(hero.title)}</h1>
+            <div class="meta"><span class="badge">${hero.classification}</span><span>${hero.year}</span><span>·</span><span>${dur(hero.durationMin)}</span><span>·</span><span>${hero.rating.toFixed(1)}</span><span style="color:var(--subtle)">${hero.genres.join(" · ")}</span></div>
+            <p>${esc(hero.synopsis)}</p>
+            <div class="hero-actions">
+              <button class="btn play lg" data-watch="${hero.id}">▶ Assistir</button>
+              <button class="btn ghost lg" data-open="${hero.id}">Mais informações</button>
+              <button class="btn outline" data-list="${hero.id}">${hero.inMyList ? "✓" : "+"}</button>
+            </div>
+          </div>
+        </section>
+        <div class="rows">
+          ${row("Minha lista", myList)}
+          ${row("Em alta", trending)}
+          ${row("Top 10 na NOX", top, true)}
+          ${row("Adicionados recentemente", recent)}
+          ${GENRES.map(g => row(g, movies.filter(m => m.genres.includes(g)))).join("")}
+        </div>`;
+    }
+    function renderLista() {
+      const grid = document.getElementById("listaGrid");
+      const list = movies.filter(m => m.inMyList);
+      grid.innerHTML = list.length ? list.map(m => card(m)).join("") :
+        `<div style="grid-column:1/-1;padding:40px 0;color:var(--muted)">Nenhum filme na sua lista ainda.</div>`;
+    }
+    function render() {
+      renderHome();
+      renderLista();
+      document.querySelectorAll("[data-go]").forEach(a => a.classList.toggle("active", a.dataset.go === page));
+    }
+    function find(id) { return movies.find(m => m.id === id); }
+    function openDetail(id) {
+      const m = find(id); if (!m) return;
+      document.getElementById("detailModal").innerHTML = `
+        <div class="modal-hero poster-art poster-p${hash(m.title)%8}">${posterHTML(m)}<button class="close" data-close="detail">✕</button></div>
+        <div class="modal-body">
+          <h2 style="font-family:var(--display);font-size:2.4rem;letter-spacing:.03em">${esc(m.title)}</h2>
+          <div class="meta"><span class="badge">${m.classification}</span><span>${m.year}</span><span>·</span><span>${dur(m.durationMin)}</span><span>·</span><span>${m.rating.toFixed(1)}</span></div>
+          <p style="margin:14px 0;line-height:1.55">${esc(m.synopsis)}</p>
+          <p style="color:var(--muted);font-size:13px">Direção: ${esc(m.director)} · ${m.genres.join(" · ")}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:18px">
+            <button class="btn play" data-watch="${m.id}">▶ Assistir</button>
+            <button class="btn ghost" data-list="${m.id}">${m.inMyList ? "Remover da lista" : "Minha lista"}</button>
+            <button class="btn outline" data-edit="${m.id}">Editar</button>
+            <button class="btn outline" data-del="${m.id}">Excluir</button>
+          </div>
+        </div>`;
+      document.getElementById("detail").classList.add("open");
+    }
+    function watch(id) {
+      const m = find(id); if (!m) return;
+      document.getElementById("theaterTitle").textContent = m.title;
+      const bar = document.getElementById("playhead");
+      bar.style.animation = "none"; bar.offsetHeight; bar.style.animation = "";
+      document.getElementById("theater").classList.add("open");
+      document.getElementById("detail").classList.remove("open");
+    }
+    function toggleList(id) {
+      const m = find(id); if (!m) return;
+      m.inMyList = !m.inMyList; save(); render();
+      if (document.getElementById("detail").classList.contains("open")) openDetail(id);
+      toast(m.inMyList ? "Adicionado à minha lista" : "Removido da lista");
+    }
+    function setPage(name) {
+      page = name;
+      document.getElementById("home").classList.toggle("on", name === "home");
+      document.getElementById("lista").classList.toggle("on", name === "lista");
+      document.querySelectorAll("[data-go]").forEach(a => a.classList.toggle("active", a.dataset.go === name));
+    }
+    function openAdd(movie) {
+      editingId = movie ? movie.id : null;
+      document.getElementById("addTitle").textContent = movie ? "Editar filme" : "Adicionar filme";
+      const form = document.getElementById("addForm");
+      form.title.value = movie?.title || "";
+      form.year.value = movie?.year || new Date().getFullYear();
+      form.durationMin.value = movie?.durationMin || 110;
+      form.rating.value = movie?.rating || 8;
+      form.classification.value = movie?.classification || "14";
+      form.director.value = movie?.director || "";
+      form.synopsis.value = movie?.synopsis || "";
+      form.posterUrl.value = movie?.posterUrl || "";
+      form.featured.checked = !!movie?.featured;
+      selectedGenres = movie ? [...movie.genres] : [];
+      renderChips();
+      document.getElementById("add").classList.add("open");
+    }
+    function renderChips() {
+      document.getElementById("genreChips").innerHTML = GENRES.map(g =>
+        `<button type="button" class="chip${selectedGenres.includes(g) ? " on" : ""}" data-genre="${g}">${g}</button>`
+      ).join("");
+    }
+    function renderSearch(q) {
+      const query = q.trim().toLowerCase();
+      const hits = query ? movies.filter(m =>
+        (m.title + " " + m.director + " " + m.genres.join(" ")).toLowerCase().includes(query)
+      ) : movies.slice(0, 8);
+      document.getElementById("searchList").innerHTML = hits.map(m =>
+        `<button class="search-item" data-open="${m.id}"><div class="thumb">${posterHTML(m)}</div><div><strong>${esc(m.title)}</strong><div style="color:var(--muted);font-size:12px">${m.year} · ${m.genres.join(" · ")}</div></div></button>`
+      ).join("") || `<p style="color:var(--muted)">Nenhum filme encontrado.</p>`;
+    }
+
+    document.body.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-open],[data-watch],[data-list],[data-edit],[data-del],[data-go],[data-close],[data-genre],#addBtn,#cancelAdd,#searchBtn,#closeTheater,#emptyAdd");
+      if (!t) {
+        if (e.target.classList.contains("overlay")) e.target.classList.remove("open");
+        return;
+      }
+      if (t.dataset.open) { document.getElementById("search").classList.remove("open"); openDetail(t.dataset.open); }
+      if (t.dataset.watch) watch(t.dataset.watch);
+      if (t.dataset.list) toggleList(t.dataset.list);
+      if (t.dataset.edit) { document.getElementById("detail").classList.remove("open"); openAdd(find(t.dataset.edit)); }
+      if (t.dataset.del) {
+        if (confirm("Excluir este filme?")) {
+          movies = movies.filter(m => m.id !== t.dataset.del); save(); render();
+          document.getElementById("detail").classList.remove("open");
+          toast("Filme excluído");
+        }
+      }
+      if (t.dataset.go) { e.preventDefault(); setPage(t.dataset.go); }
+      if (t.dataset.close) document.getElementById(t.dataset.close).classList.remove("open");
+      if (t.dataset.genre) {
+        selectedGenres = selectedGenres.includes(t.dataset.genre)
+          ? selectedGenres.filter(g => g !== t.dataset.genre)
+          : [...selectedGenres, t.dataset.genre];
+        renderChips();
+      }
+      if (t.id === "addBtn" || t.id === "emptyAdd") openAdd();
+      if (t.id === "cancelAdd") document.getElementById("add").classList.remove("open");
+      if (t.id === "searchBtn") { document.getElementById("search").classList.add("open"); renderSearch(""); document.getElementById("searchInput").focus(); }
+      if (t.id === "closeTheater") document.getElementById("theater").classList.remove("open");
+    });
+    document.getElementById("addForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const f = e.target;
+      if (!f.title.value.trim()) return toast("Dê um título ao filme.");
+      if (!selectedGenres.length) return toast("Escolha pelo menos um gênero.");
+      const payload = {
+        title: f.title.value.trim(),
+        year: Number(f.year.value) || new Date().getFullYear(),
+        synopsis: f.synopsis.value.trim() || "Sinopse ainda não escrita.",
+        genres: selectedGenres,
+        rating: Math.min(10, Math.max(0, Number(f.rating.value) || 0)),
+        durationMin: Math.max(1, Number(f.durationMin.value) || 1),
+        director: f.director.value.trim() || "Não informado",
+        classification: f.classification.value,
+        posterUrl: f.posterUrl.value.trim(),
+        featured: f.featured.checked,
+        inMyList: editingId ? (find(editingId)?.inMyList || false) : false,
+        createdAt: Date.now()
+      };
+      if (editingId) {
+        movies = movies.map(m => m.id === editingId ? { ...m, ...payload, id: editingId } : m);
+        toast("Filme atualizado");
+      } else {
+        movies = [{ ...payload, id: crypto.randomUUID() }, ...movies];
+        toast("Filme adicionado");
+      }
+      save(); render();
+      document.getElementById("add").classList.remove("open");
+    });
+    document.getElementById("searchInput").addEventListener("input", (e) => renderSearch(e.target.value));
+    window.addEventListener("scroll", () => document.getElementById("nav").classList.toggle("solid", scrollY > 24), { passive: true });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "/" && !["INPUT","TEXTAREA"].includes(e.target.tagName)) {
+        e.preventDefault();
+        document.getElementById("search").classList.add("open");
+        renderSearch("");
+        document.getElementById("searchInput").focus();
+      }
+      if (e.key === "Escape") document.querySelectorAll(".overlay.open,.theater.open").forEach(el => el.classList.remove("open"));
+    });
+    render();
+  </script>
+</body>
+</html>
